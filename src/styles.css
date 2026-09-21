@@ -1,0 +1,34 @@
+:root { font-family: Inter, system-ui, sans-serif; color: #f4f4f5; background: #09090b; font-synthesis: none; }
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+button, input { font: inherit; }
+button { color: inherit; }
+.app { width: 100%; height: 100%; background: #0b0b0f; display: flex; flex-direction: column; }
+.topbar { height: 58px; flex: 0 0 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid #24242b; background: #101015cc; backdrop-filter: blur(12px); z-index: 10; }
+.brand { display: flex; align-items: baseline; gap: 9px; font-size: 18px; font-weight: 650; letter-spacing: .01em; }
+.brand small { color: #777782; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; }
+.actions { display: flex; gap: 7px; position: relative; }
+.icon-btn { width: 36px; height: 34px; display: grid; place-items: center; border: 1px solid #2a2a32; border-radius: 9px; background: #17171d; cursor: pointer; color: #ddd; }
+.file-input { position: absolute; inset: 0; width: 36px; opacity: 0; cursor: pointer; }
+.workspace { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #111116; touch-action: none; }
+.canvas { position: absolute; inset: 0; z-index: 2; touch-action: none; }
+.reference { position: absolute; inset: 7%; z-index: 1; display: grid; place-items: center; pointer-events: none; transition: opacity .15s; }
+.reference img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.reference.locked { pointer-events: none; }
+.reference-panel { position: absolute; z-index: 8; left: 12px; bottom: 55px; padding: 11px; width: min(290px, calc(100% - 24px)); border: 1px solid #292932; border-radius: 12px; background: #15151bdd; backdrop-filter: blur(14px); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; }
+.reference-panel strong { width: 100%; }
+.reference-panel label { flex: 1; display: flex; gap: 8px; align-items: center; color: #a8a8b2; }
+.reference-panel input[type="range"] { min-width: 80px; flex: 1; }
+.reference-panel button { border: 1px solid #30303a; background: #1c1c23; border-radius: 7px; padding: 6px 9px; cursor: pointer; font-size: 11px; }
+.controls { height: 46px; flex: 0 0 46px; display: flex; align-items: center; gap: 13px; padding: 0 12px; border-top: 1px solid #24242b; color: #aaaab4; font-size: 11px; background: #101015; }
+.controls label { display: flex; gap: 6px; align-items: center; }
+.controls input { width: 75px; }
+.controls .hint { margin-left: auto; color: #696973; }
+.tool-menu { position: absolute; z-index: 7; width: 1px; height: 1px; }
+.tool-menu::before { content: ""; position: absolute; width: 190px; height: 120px; left: -95px; top: -105px; border: 1px solid #383842; border-bottom: 0; border-radius: 190px 190px 0 0; background: #17171dcc; backdrop-filter: blur(14px); pointer-events: none; }
+.tool { position: absolute; left: 0; top: 0; width: 56px; height: 56px; border: 1px solid #35353f; border-radius: 50%; background: #202027; display: grid; place-items: center; cursor: pointer; box-shadow: 0 6px 18px #0008; }
+.tool b { font-size: 18px; line-height: 16px; }
+.tool span { position: absolute; top: 58px; font-size: 9px; color: #b5b5bf; white-space: nowrap; }
+.tool.active { outline: 2px solid #8b5cf6; }
+.menu-center { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); width: 34px; height: 34px; border: 1px solid #4a4a55; border-radius: 50%; background: #0f0f14; cursor: pointer; font-size: 18px; }
+@media (max-width: 600px) { .brand { font-size: 16px; } .brand small { display: none; } .controls { gap: 8px; } .controls .hint { display: none; } }
