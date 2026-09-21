@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent, PointerEvent } from 'react'
 
 type Tool = 'pen' | 'eraser' | 'picker' | 'fill'
 
@@ -23,35 +24,40 @@ export default function App() {
   const drawing = useRef(false)
   const last = useRef({ x: 0, y: 0 })
 
-  const resizeCanvas = () => {
+  useEffect(() => {
     const canvas = canvasRef.current
     const wrap = wrapRef.current
     if (!canvas || !wrap) return
-    const dpr = window.devicePixelRatio || 1
-    const rect = wrap.getBoundingClientRect()
-    const old = canvas.toDataURL()
-    canvas.width = Math.max(1, Math.floor(rect.width * dpr))
-    canvas.height = Math.max(1, Math.floor(rect.height * dpr))
-    canvas.style.width = rect.width + 'px'
-    canvas.style.height = rect.height + 'px'
-    const ctx = canvas.getContext('2d')!
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-    if (old !== 'data:,' && rect.width > 0 && rect.height > 0) {
-      const img = new Image()
-      img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height)
-      img.src = old
-    }
-  }
 
-  useEffect(() => {
-    resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
-    return () => window.removeEventListener('resize', resizeCanvas)
+    const resize = () => {
+      const rect = wrap.getBoundingClientRect()
+      const dpr = Math.max(1, window.devicePixelRatio || 1)
+      const old = canvas.width > 0 ? canvas.toDataURL() : null
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr))
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr))
+      canvas.style.width = `${rect.width}px`
+      canvas.style.height = `${rect.height}px`
+
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+
+      if (old && rect.width > 0 && rect.height > 0) {
+        const img = new Image()
+        img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height)
+        img.src = old
+      }
+    }
+
+    resize()
+    const observer = new ResizeObserver(resize)
+    observer.observe(wrap)
+    return () => observer.disconnect()
   }, [])
 
-  const point = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const point = (e: PointerEvent<HTMLCanvasElement>) => {
     const r = e.currentTarget.getBoundingClientRect()
     return { x: e.clientX - r.left, y: e.clientY - r.top }
   }
@@ -61,7 +67,7 @@ export default function App() {
     longPress.current = null
   }
 
-  const start = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const start = (e: PointerEvent<HTMLCanvasElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId)
     const p = point(e)
     last.current = p
@@ -70,19 +76,24 @@ export default function App() {
       drawing.current = false
       setMenu(p)
     }, 480)
+
     if (tool === 'pen' || tool === 'eraser') {
       drawing.current = true
-      const ctx = e.currentTarget.getContext('2d')!
-      ctx.beginPath()
-      ctx.moveTo(p.x, p.y)
+      const ctx = e.currentTarget.getContext('2d')
+      if (ctx) {
+        ctx.beginPath()
+        ctx.moveTo(p.x, p.y)
+      }
     }
   }
 
-  const move = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const move = (e: PointerEvent<HTMLCanvasElement>) => {
     if (!drawing.current) return
     clearLongPress()
     const p = point(e)
-    const ctx = e.currentTarget.getContext('2d')!
+    const ctx = e.currentTarget.getContext('2d')
+    if (!ctx) return
+
     ctx.globalAlpha = opacity
     ctx.lineWidth = size
     ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over'
@@ -94,13 +105,14 @@ export default function App() {
     last.current = p
   }
 
-  const end = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const end = (e: PointerEvent<HTMLCanvasElement>) => {
     clearLongPress()
     drawing.current = false
-    e.currentTarget.getContext('2d')!.globalCompositeOperation = 'source-over'
+    const ctx = e.currentTarget.getContext('2d')
+    if (ctx) ctx.globalCompositeOperation = 'source-over'
   }
 
-  const importImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const importImage = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
@@ -112,7 +124,8 @@ export default function App() {
   const clearCanvas = () => {
     const c = canvasRef.current
     if (!c) return
-    const ctx = c.getContext('2d')!
+    const ctx = c.getContext('2d')
+    if (!ctx) return
     ctx.clearRect(0, 0, c.clientWidth, c.clientHeight)
   }
 
@@ -129,7 +142,7 @@ export default function App() {
 
       <section className="workspace" ref={wrapRef}>
         {reference && (
-          <div className={`reference ${referenceLocked ? 'locked' : ''}`} style={{ opacity: referenceOpacity }}>
+          <div className="reference" style={{ opacity: referenceOpacity }}>
             <img src={reference} alt="Reference" />
           </div>
         )}
@@ -140,7 +153,6 @@ export default function App() {
           onPointerMove={move}
           onPointerUp={end}
           onPointerCancel={end}
-          onPointerLeave={end}
         />
 
         {menu && (
